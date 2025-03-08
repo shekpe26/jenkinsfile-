@@ -23,11 +23,12 @@ pipeline {
                 script {
                     // Install python3-venv if not already installed
                     sh 'sudo apt-get update && sudo apt-get install -y python3-venv'
-                    
+
                     // Create and activate virtual environment
+                    // Use bash explicitly to ensure 'source' works
                     sh '''
                     python3 -m venv venv
-                    source venv/bin/activate && pip install -r requirements.txt
+                    bash -c "source venv/bin/activate && pip install -r requirements.txt"
                     '''
                 }
             }
