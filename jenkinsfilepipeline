@@ -1,6 +1,11 @@
 pipeline { 
     agent any
 
+    triggers {
+        // Poll SCM every minute for changes
+        pollSCM('* * * * *')  // Cron syntax: every minute
+    }
+
     environment {
         DOCKER_IMAGE = 'shekpe/django-project/my-app'
         GIT_REPO_URL = 'https://github.com/Xclusivep/myproject.git'
@@ -17,10 +22,8 @@ pipeline {
             steps {
                 script {
                     // Install python3-venv if not already installed
-                    sh 'sudo apt-get update && sudo apt-get install -y python3-venv'
-                    
-                    // Install Python dependencies
-                    sh 'python3 -m venv venv'
+                    // Assuming that the necessary packages are already installed globally
+                    sh 'python3 -m venv venv || true'
                     sh 'source venv/bin/activate && pip install -r requirements.txt'
                 }
             }
@@ -52,6 +55,7 @@ pipeline {
     post {
         always {
             // Ensure deactivate only runs if the virtual environment exists
+            // Skipping the check if the venv creation failed
             sh 'if [ -f venv/bin/activate ]; then deactivate || true; fi'
         }
     }
