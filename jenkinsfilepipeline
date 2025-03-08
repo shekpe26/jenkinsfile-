@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define environment variables for Docker Hub
+        DOCKER_IMAGE = 'shekpe/django-project/my-app'  //
+        GIT_REPO_URL = 'https://github.com/Xclusivep/myproject.git'  //
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Pull the Python application from GitHub
+                git branch: 'main', url: "${https://github.com/Xclusivep/myproject.git}"
+            }
+        }
+
+        stage('Set Up Python Environment') {
+            steps {
+                script {
+                    // Install Python dependencies
+                    sh 'python3 -m venv venv'
+                    sh 'source venv/bin/activate && pip install -r requirements.txt'
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build the Docker image
+                    sh 'docker build -t ${my-app} .'
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    // Push the Docker image to Docker Hub
+                    sh 'docker push ${my-app}'
+                }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                // Clean up any unused Docker images
+                sh 'docker system prune -f'
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up Docker environment and close the Python virtual environment
+            sh 'deactivate || true'
+        }
+    }
+}
+
