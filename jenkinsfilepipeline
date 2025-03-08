@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
 
     environment {
@@ -11,7 +11,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Pull the Python application from GitHub
-                git branch: 'main', url: "${https://github.com/Xclusivep/myproject.git}"
+                git branch: 'main', url: "${GIT_REPO_URL}" //
             }
         }
 
@@ -29,7 +29,7 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                    sh 'docker build -t ${my-app} .'
+                    sh 'docker build -t ${DOCKER_IMAGE} .'  //
                 }
             }
         }
@@ -38,7 +38,7 @@ pipeline {
             steps {
                 script {
                     // Push the Docker image to Docker Hub
-                    sh 'docker push ${my-app}'
+                    sh 'docker push ${DOCKER_IMAGE}'  //
                 }
             }
         }
@@ -54,7 +54,7 @@ pipeline {
     post {
         always {
             // Clean up Docker environment and close the Python virtual environment
-            sh 'deactivate || true'
+            sh 'deactivate || true' // This is correct, no issues here
         }
     }
 }
