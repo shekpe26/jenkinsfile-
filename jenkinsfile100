@@ -1,0 +1,91 @@
+
+pipeline {
+    agent any
+
+    triggers {
+        pollSCM('H/4 * * * *')  // Poll the SCM every 4 minutes
+    }
+
+    environment {
+        REPO_URL = 'https://github.com/Xclusivep/myproject.git'  //
+        EC2_INSTANCE = 'ec2-user@your-ec2-2-public-ip' // Replace with EC2(2) IP
+        APP_PATH = '/home//myproject'  //
+        IMAGE_NAME = 'myapp' //
+        REGISTRY = ''  shekpe/django-project//
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                script {
+                    echo "Cloning repository..."
+                    git branch: 'main', url: "${REPO_URL}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "Building Docker image..."
+                    sh """
+                    docker build -t ${my-app} .
+                    """
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    if (REGISTRY) {
+                        echo "Pushing Docker image to registry..."
+                        sh """
+                        docker tag ${my-app} ${shekpe/django-project}/${my-app}:latest
+                        docker push ${shekpe/django-project}/${my-app}:latest
+                        """
+                    } else {
+                        echo "Skipping push to registry (no registry configured)"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy App') {
+            steps {
+                script {
+                    echo "Deploying the app on EC2(2)..."
+                    // Deploy the app to EC2(2)
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${EC2_INSTANCE} 'mkdir -p ${APP_PATH}'
+                    scp -r * ${EC2_INSTANCE}:${APP_PATH}
+                    ssh ${EC2_INSTANCE} 'docker pull ${shekpe/django-project}/${my-app}:latest || docker build -t ${my-app} ${APP_PATH} && docker run -d -p 80:80 ${my-app}'
+                    """
+                }
+            }
+        }
+
+        stage('Setup PostgreSQL') {
+            steps {
+                script {
+                    echo "Setting up PostgreSQL on EC2(2)..."
+                    // Install and configure PostgreSQL on EC2(2)
+                    sh """
+                    ssh ${EC2_INSTANCE} 'docker pull postgres:latest'
+                    ssh ${EC2_INSTANCE} 'docker run --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres'
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment successful!"
+        }
+        failure {
+            echo "Deployment failed!"
+        }
+    }
+}
+
