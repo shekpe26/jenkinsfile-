@@ -1,4 +1,4 @@
-pipeline { 
+pipeline {
     agent any
 
     triggers {
@@ -9,6 +9,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'shekpe/django-project/my-app'
         GIT_REPO_URL = 'https://github.com/Xclusivep/myproject.git'
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'  // Add this for Docker Hub credentials
     }
 
     stages {
@@ -42,9 +43,23 @@ pipeline {
             }
         }
 
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    // Login to Docker Hub using Jenkins credentials
+                    withCredentials([usernamePassword(credentialsId: "${DOCKER_CREDENTIALS}", usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        '''
+                    }
+                }
+            }
+        }
+
         stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
+                    // Push Docker image to Docker Hub
                     sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
