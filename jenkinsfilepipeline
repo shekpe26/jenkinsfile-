@@ -9,7 +9,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = 'shekpe/django-project/my-app'
         GIT_REPO_URL = 'https://github.com/Xclusivep/myproject.git'
-        DOCKER_CREDENTIALS = 'dockerhub-credentials'  // Add this for Docker Hub credentials
+        DOCKER_CREDENTIALS = 'dockerhub-credentials'  // Docker Hub credentials ID in Jenkins
     }
 
     stages {
@@ -38,7 +38,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                    // Ensure variable substitution works within sh commands
+                    sh "docker build -t ${DOCKER_IMAGE} ."
                 }
             }
         }
@@ -60,22 +61,24 @@ pipeline {
             steps {
                 script {
                     // Push Docker image to Docker Hub
-                    sh 'docker push ${DOCKER_IMAGE}'
+                    sh "docker push ${DOCKER_IMAGE}"
                 }
             }
         }
 
         stage('Clean Up') {
             steps {
-                sh 'docker system prune -f'
+                script {
+                    // Clean up unused Docker images and containers to free up space
+                    sh 'docker system prune -f'
+                }
             }
         }
     }
 
     post {
         always {
-            // Ensure deactivate only runs if the virtual environment exists
-            // Skipping the check if the venv creation failed
+            // Deactivate the virtual environment, only if it exists
             sh 'if [ -f venv/bin/activate ]; then deactivate || true; fi'
         }
     }
