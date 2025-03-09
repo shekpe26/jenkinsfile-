@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_IMAGE = 'shekpe/django-project/my-app'
+        DOCKER_IMAGE = 'shekpe/django-project:latest'
         GIT_REPO_URL = 'https://github.com/Xclusivep/myproject.git'
         DOCKER_CREDENTIALS = 'dockerhub-credentials'  // Docker Hub credentials ID in Jenkins
     }
